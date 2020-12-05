@@ -21,6 +21,9 @@
       - kubeadm
       - kubectl
 
+- set_fact:
+    node_ip: "{{ ansible_all_ipv4_addresses | ipaddr('192.0.0.0/8') | first }}"
+
 - name: Configure node ip
   lineinfile:
     path: /usr/bin/kubelet
