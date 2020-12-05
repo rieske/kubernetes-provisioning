@@ -1,23 +1,19 @@
 ---
-- name: Add an apt signing key for Docker
-  apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    state: present
-
-- name: Add apt repository for stable version
-  apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
-    state: present
+- name: Add Docker repo
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docer-ce.repo
 
 - name: Install docker and its dependecies
-  apt:
-    name: "{{ packages }}"
-    state: present
-    update_cache: yes
-  vars:
-    packages:
+  yum:
+    state: latest
+    name:
     - docker-ce
     - docker-ce-cli
     - containerd.io
-  notify:
-    - docker status
+
+- name: Start Docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes

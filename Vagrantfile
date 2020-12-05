@@ -1,4 +1,4 @@
-IMAGE_NAME = "ubuntu/focal64"
+IMAGE_NAME = "centos/7"
 VAGRANT_VM_PROVIDER = "virtualbox"
 MASTERS = 1
 NODES = 2
