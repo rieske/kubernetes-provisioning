@@ -1,12 +1,7 @@
 IMAGE_NAME = "centos/7"
-VAGRANT_VM_PROVIDER = "virtualbox"
-MASTERS = 1
-NODES = 2
-INVENTORY = "kubernetes-setup/inventory/vagrant.ini"
-PLAYBOOK = "kubernetes-setup/cluster.yml"
+VMS = 3
 
-MASTER_RAW_SSH_ARGS = []
-NODE_RAW_SSH_ARGS = []
+sshKey="#{Dir.home}/.ssh/id_rsa.pub"
 
 Vagrant.configure("2") do |config|
     config.ssh.insert_key = false
@@ -16,42 +11,20 @@ Vagrant.configure("2") do |config|
         v.cpus = 2
     end
 
-    (1..MASTERS-1).each do |machine_id|
-       MASTER_RAW_SSH_ARGS << "-o IdentityFile=#{ENV["VAGRANT_DOTFILE_PATH"]}/machines/machine#{machine_id}/#{VAGRANT_VM_PROVIDER}/private_key"
-    end
-
-    (1..NODES-1).each do |machine_id|
-       NODE_RAW_SSH_ARGS << "-o IdentityFile=#{ENV["VAGRANT_DOTFILE_PATH"]}/machines/machine#{machine_id}/#{VAGRANT_VM_PROVIDER}/private_key"
-    end
-
-    (1..MASTERS).each do |i|
-        config.vm.define "master-#{i}" do |master|
-            master.vm.box = IMAGE_NAME
-            master.vm.network "private_network", ip: "192.168.50.#{i + 10}"
-            master.vm.hostname = "master#{i}.vagrant.local"
-            if i == MASTERS
-                master.vm.provision "ansible" do |ansible|
-                    ansible.limit = "master"
-                    ansible.inventory_path = INVENTORY
-                    ansible.playbook = PLAYBOOK
-                    ansible.raw_ssh_args = MASTER_RAW_SSH_ARGS
-                end
-            end
-        end
-    end
-
-    (1..NODES).each do |i|
-        config.vm.define "node-#{i}" do |node|
+    (1..VMS).each do |i|
+        config.vm.define "node#{i}" do |node|
             node.vm.box = IMAGE_NAME
-            node.vm.network "private_network", ip: "192.168.50.#{i + 20}"
+            node.vm.network "private_network", ip: "192.168.50.#{i + 10}"
             node.vm.hostname = "node#{i}.vagrant.local"
-            if i == NODES
-                node.vm.provision "ansible" do |ansible|
-                    ansible.limit = "node"
-                    ansible.inventory_path = INVENTORY
-                    ansible.playbook = PLAYBOOK
-                    ansible.raw_ssh_args = NODE_RAW_SSH_ARGS
-                end
+            config.vm.synced_folder '.', '/vagrant', disabled: true
+            config.vm.provision "shell" do |s|
+              ssh_pub_key = File.readlines("#{sshKey}").first.strip
+              s.inline = <<-SHELL
+                echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+                mkdir -p /root/.ssh && chmod 700 /root/.ssh
+                touch /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys
+                echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
+              SHELL
             end
         end
     end

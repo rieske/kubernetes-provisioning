@@ -1,5 +1,5 @@
 ---
-- name: update kernel settings
+- name: Update kernel settings
   sysctl:
     name: net.bridge.bridge-nf-call-iptables
     value: "1"
@@ -7,7 +7,7 @@
     state: present
     reload: yes
 
-- name: add Kubernetes' YUM repository
+- name: Add Kubernetes' YUM repository
   yum_repository:
     name: Kubernetes
     description: Kubernetes YUM repository
@@ -37,7 +37,6 @@
     dest: /etc/sysconfig/kubelet
   notify:
     - reload systemd
-    - restart kubelet
 
 - meta: flush_handlers
 
