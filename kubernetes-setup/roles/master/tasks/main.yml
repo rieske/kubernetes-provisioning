@@ -13,7 +13,6 @@
   become: false
   command: kubectl create -f https://docs.projectcalico.org/v3.14/getting-started/kubernetes/installation/hosted/calico.yaml
 
-
 - name: Generate join command
   command: kubeadm token create --print-join-command
   register: join_command
@@ -21,5 +20,4 @@
 - name: Copy join command to local file
   become: false
   local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
-
 

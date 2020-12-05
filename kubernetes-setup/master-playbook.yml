@@ -2,8 +2,5 @@
 - hosts: all
   become: true
   roles:
-    - prerequisites
-    - k8s-master
-  handlers:
-    - name: docker status
-      service: name=docker state=started
+    - k8s
+    - master
