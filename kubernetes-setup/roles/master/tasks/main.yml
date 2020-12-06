@@ -1,13 +1,13 @@
 ---
 - name: Initialize the Kubernetes cluster using kubeadm
-  command: kubeadm init --apiserver-advertise-address="{{ node_ip }}" --apiserver-cert-extra-sans="{{ node_ip }}" --node-name node1.vagrant.local --pod-network-cidr=192.168.0.0/16
+  command: kubeadm init --apiserver-advertise-address="{{ node_ip }}" --apiserver-cert-extra-sans="{{ node_ip }}" --node-name node1 --pod-network-cidr=192.168.0.0/16
 
-- name: Setup kubeconfig for vagrant user
+- name: Setup kubeconfig for {{ kubernetes_user }} user
   command: "{{ item }}"
   with_items:
-   - mkdir -p /home/vagrant/.kube
-   - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
-   - chown vagrant:vagrant /home/vagrant/.kube/config
+   - mkdir -p /home/{{ kubernetes_user }}/.kube
+   - cp -i /etc/kubernetes/admin.conf /home/{{ kubernetes_user }}/.kube/config
+   - chown {{ kubernetes_user }}:{{ kubernetes_user }} /home/{{ kubernetes_user }}/.kube/config
 
 - name: Install calico pod network
   become: false

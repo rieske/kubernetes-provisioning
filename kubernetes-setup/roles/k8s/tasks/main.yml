@@ -2,11 +2,5 @@
 - import_tasks: install-essentials.yml
 - import_tasks: disable-swap.yml
 - import_tasks: install-docker.yml
-
-- name: Add vagrant user to docker group
-  user:
-    name: vagrant
-    group: docker
-
 - import_tasks: install-kubernetes.yml
 

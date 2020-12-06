@@ -17,3 +17,9 @@
     name: docker
     state: started
     enabled: yes
+
+- name: Add {{ docker_user }} user to docker group
+  user:
+    name: "{{ docker_user }}"
+    group: docker
+
