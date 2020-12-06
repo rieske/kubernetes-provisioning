@@ -1,23 +1,32 @@
 ---
-- name: Initialize the Kubernetes cluster using kubeadm
-  command: kubeadm init --apiserver-advertise-address="{{ node_ip }}" --apiserver-cert-extra-sans="{{ node_ip }}" --node-name node1 --pod-network-cidr=192.168.0.0/16
-
-- name: Setup kubeconfig for {{ kubernetes_user }} user
-  command: "{{ item }}"
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
   with_items:
-   - mkdir -p /home/{{ kubernetes_user }}/.kube
-   - cp -i /etc/kubernetes/admin.conf /home/{{ kubernetes_user }}/.kube/config
-   - chown {{ kubernetes_user }}:{{ kubernetes_user }} /home/{{ kubernetes_user }}/.kube/config
+    - /etc/kubernetes
+    - /var/log/kubernetes/audit
+    - "{{ kubernetes_host_dir }}/conf"
 
-- name: Install calico pod network
-  become: false
-  command: kubectl create -f https://docs.projectcalico.org/v3.14/getting-started/kubernetes/installation/hosted/calico.yaml
+- name: Copy audit policy configuration
+  copy:
+    src: audit-policy.yml
+    dest: /etc/sysctl.d/audit-policy.yml
 
-- name: Generate join command
-  command: kubeadm token create --print-join-command
-  register: join_command
+- name: Copy Kubernetes configuration
+  template:
+    src: kubeadm-config.yml.j2
+    dest: "{{ kubernetes_host_dir }}/conf/kubeadm-config.yml"
+  when: inventory_hostname == groups["master"][0]
 
-- name: Copy join command to local file
-  become: false
-  local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+- name: Check cluster health
+  shell: "kubectl get cs --kubeconfig={{ kubeconfig_location }}"
+  register: cluster_health
+  ignore_errors: yes
+
+- import_tasks: initiate-master.yml
+  when: inventory_hostname == groups["master"][0] and cluster_health.rc != 0
+
+- import_tasks: join-master.yml
+  when: inventory_hostname != groups["master"][0]
 

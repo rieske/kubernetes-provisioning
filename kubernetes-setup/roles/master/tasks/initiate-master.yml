@@ -1,0 +1,12 @@
+---
+- name: Initializing Kubernetes cluster
+  shell: |
+    kubeadm reset -f
+    kubeadm init --config {{ kubernetes_host_dir }}/conf/kubeadm-config.yml --upload-certs
+  register: output
+
+- name: Copy join token to provisioning box
+  become: false
+  local_action: copy content={{ output.stdout }} dest={{ kubeadm_join_token_path }}
+
+- import_tasks: finalize-master.yml

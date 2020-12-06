@@ -1,0 +1,3 @@
+---
+etcd_version: v3.3.18
+haproxy_version: 1.9.8

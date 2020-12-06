@@ -23,3 +23,15 @@
     name: "{{ docker_user }}"
     group: docker
 
+- name: Install python-pip
+  yum:
+    state: latest
+    name:
+    - python-pip
+
+- name: Install docker-py
+  pip: name={{ item.name }} version={{ item.version }} state=present
+  with_items:
+    - name: docker-py
+      version: 1.10.6
+

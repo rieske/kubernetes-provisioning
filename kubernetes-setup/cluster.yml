@@ -1,14 +1,29 @@
 - hosts: all
   become: true
   roles:
-    - k8s
+    - name: k8s
+      tags: [base]
+
+- hosts: haproxy
+  become: true
+  roles:
+    - name: haproxy
+      tags: [base, haproxy]
+
+- hosts: etcd
+  become: true
+  roles:
+   - name: etcd
+     tags: [etcd]
 
 - hosts: master
   become: true
   roles:
-    - master
+    - name: master
+      tags: [master]
 
 - hosts: node
   become: true
   roles:
-    - node
+    - name: node
+      tags: [worker]

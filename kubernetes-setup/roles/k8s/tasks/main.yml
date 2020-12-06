@@ -1,6 +1,6 @@
 ---
 - import_tasks: install-essentials.yml
-- import_tasks: disable-swap.yml
 - import_tasks: install-docker.yml
+- import_tasks: disable-swap.yml
 - import_tasks: install-kubernetes.yml
 

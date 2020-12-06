@@ -1,0 +1,31 @@
+---
+- name: Create directories for haproxy
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ haproxy_host_dir }}"
+    - "{{ haproxy_host_dir }}/conf"
+    - "{{ haproxy_host_dir }}/bin"
+    - "{{ haproxy_host_dir }}/stats"
+    - "{{ haproxy_host_dir }}/log"
+
+- name: Copy config files
+  template:
+    src: haproxy.cfg.j2
+    dest: "{{ haproxy_host_dir }}/conf/haproxy.cfg"
+
+- name: Start haproxy
+  docker_container:
+    name: haproxy
+    state: started
+    restart_policy: unless-stopped
+    image: "haproxy:{{ haproxy_version }}"
+    command: "haproxy -f /usr/local/etc/haproxy/"
+    network_mode: host
+    read_only: yes
+    restart: no
+    ulimits: "nofile:1048576:1048576"
+    volumes:
+      - "{{ haproxy_host_dir }}/conf:/usr/local/etc/haproxy:ro"
+      - "{{ haproxy_host_dir }}/stats:/var/haproxy:rw"

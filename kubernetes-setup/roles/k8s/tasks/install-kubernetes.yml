@@ -23,9 +23,6 @@
     - kubeadm
     - kubectl
 
-- set_fact:
-    node_ip: "{{ ansible_all_ipv4_addresses | ipaddr('192.0.0.0/8') | first }}"
-
 - name: Copy Kubernetes configuration file
   template:
     src: templates/k8s.conf
@@ -37,8 +34,7 @@
     dest: /etc/sysconfig/kubelet
   notify:
     - reload systemd
-
-- meta: flush_handlers
+    - restart kubelet
 
 - name: Start and Enable the kubelet
   service:
