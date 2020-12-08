@@ -1,34 +1,38 @@
 ---
-- name: Create directories
-  file:
-    path: "{{ kubernetes_host_dir }}/conf"
-    state: directory
-
-- name: Copy token to worker nodes
-  copy:
-    src: "{{ kubeadm_join_token_path }}"
-    dest: "{{ kubernetes_host_dir }}/conf/kubeadm_join_token"
-
 - name: Check node status
-  shell: "kubectl get nodes --kubeconfig={{ kubeconfig_location }} | grep {{ ansible_fqdn }} | grep -v NotReady"
+  shell: "kubectl get nodes | grep {{ ansible_fqdn }} | grep -v NotReady"
   register: node_status
   ignore_errors: yes
 
+- name: Generate join token
+  shell: kubeadm token create --print-join-command
+  register: kubeadm_join_cmd
+  delegate_to: "{{ groups['master'][0] }}"
+
 - name: Join worker node
-  shell: |
-   kubeadm reset -f
-   cat {{ kubernetes_host_dir }}/conf/kubeadm_join_token | tail -2 | sh
+  become: true
+  shell: "{{ kubeadm_join_cmd.stdout }}"
   when: node_status.rc != 0 or node_status.stdout_lines | length==0
 
-- name: Setup kubeconfig for {{ kubernetes_user }} user
-  shell: |
-   mkdir -p /home/{{ kubernetes_user }}/.kube
-   cp -i /etc/kubernetes/kubelet.conf {{ kubeconfig_location }}
-   chown {{ kubernetes_user }}:{{ kubernetes_user }} {{ kubeconfig_location }}
-  when: node_status.rc != 0 or node_status.stdout_lines | length==0
+- name: Create .kube folder
+  become: true
+  file:
+    path: "/home/{{ kubernetes_user }}/.kube"
+    state: directory
+    owner: "{{ kubernetes_user }}"
+
+- name: Get kubeadm configuration from first master
+  shell: "cat {{ kubeconfig_location }}"
+  register: config_file_output
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Set kubeadm configuration
+  copy:
+    content: "{{ config_file_output.stdout }}"
+    dest: "{{ kubeconfig_location }}"
 
 - name: Wait for workers to be ready
-  shell: "kubectl get nodes --kubeconfig={{ kubeconfig_location }}"
+  shell: kubectl get nodes
   register: nodes
   until:
     - '" NotReady " not in nodes.stdout'
@@ -36,6 +40,6 @@
   delay: 10
 
 - name: label worker node
-  shell: "kubectl label nodes {{ ansible_fqdn }} nodetype=worker --kubeconfig={{ kubeconfig_location }}"
+  shell: "kubectl label nodes {{ ansible_fqdn }} nodetype=worker"
   when: node_status.rc != 0 or node_status.stdout_lines | length==0
 

@@ -17,13 +17,11 @@
      tags: [etcd]
 
 - hosts: master
-  #become: true
   roles:
     - name: master
       tags: [master]
 
 - hosts: node
-  become: true
   roles:
     - name: node
       tags: [worker]
