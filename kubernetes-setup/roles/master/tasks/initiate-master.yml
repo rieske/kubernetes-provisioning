@@ -1,12 +1,26 @@
 ---
 - name: Initializing Kubernetes cluster
+  become: true
+  shell: kubeadm init --config {{ kubernetes_host_dir }}/conf/kubeadm-config.yml --upload-certs
+  register: master_init_output
+
+- name: Save master init output
+  copy:
+    content: "{{ master_init_output.stdout }}"
+    dest: "/home/{{ kubernetes_user }}/master_init_output"
+
+- name: Extract master join command
   shell: |
-    kubeadm reset -f
-    kubeadm init --config {{ kubernetes_host_dir }}/conf/kubeadm-config.yml --upload-certs
-  register: output
+    cat /home/{{ kubernetes_user }}/master_init_output | grep -oPz 'kubeadm\sjoin(.|\n)*?\n$' > /home/{{ kubernetes_user }}/master_join_cmd
 
-- name: Copy join token to provisioning box
-  become: false
-  local_action: copy content={{ output.stdout }} dest={{ kubeadm_join_token_path }}
+- name: Setup kubeconfig for {{ kubernetes_user }} user
+  become: true
+  shell: |
+   cp /etc/kubernetes/admin.conf {{ kubeconfig_location }}
+   chown {{ kubernetes_user }}:{{ kubernetes_user }} {{ kubeconfig_location }}
+  when: cluster_health.rc != 0
 
-- import_tasks: finalize-master.yml
+- name: install network add-on
+  command: kubectl apply -f https://docs.projectcalico.org/v3.17/manifests/canal.yaml
+
+- import_tasks: wait-for-master.yml

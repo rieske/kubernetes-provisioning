@@ -1,0 +1,9 @@
+---
+- name: Wait for master to be ready
+  shell: kubectl get nodes
+  register: nodes
+  until:
+    - '" NotReady " not in nodes.stdout'
+  retries: 30
+  delay: 10
+

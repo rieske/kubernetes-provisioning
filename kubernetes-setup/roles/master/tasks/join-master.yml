@@ -1,22 +1,29 @@
 ---
 - name: Check node status
-  shell: "kubectl get nodes --kubeconfig={{ kubeconfig_location }} | grep {{ ansible_fqdn }} | grep -v NotReady"
+  shell: "kubectl get nodes | grep {{ ansible_fqdn }} | grep -v NotReady"
   register: node_status
   ignore_errors: yes
 
-- name: Copying token to worker nodes
+- name: Get master join command
+  shell: cat /home/{{ kubernetes_user }}/master_join_cmd
+  register: master_join_cmd
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Join master replica node
+  shell: "{{ master_join_cmd.stdout }} --apiserver-advertise-address={{ node_ip }}"
+  become: true
+  when: node_status.rc != 0 or node_status.stdout_lines | length==0
+
+- name: Get kubeadm configuration from first master
+  shell: "cat {{ kubeconfig_location }}"
+  register: config_file_output
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Set kubeadm configuration
   copy:
-    src: "{{ kubeadm_join_token_path }}"
-    dest: "{{ kubernetes_host_dir }}/conf/kubeadm_join_token"
-  when: node_status.rc != 0 or node_status.stdout_lines | length==0
+    content: "{{ config_file_output.stdout }}"
+    dest: "{{ kubeconfig_location }}"
 
-- name: join master replica node
-  shell: |
-   kubeadm reset -f
-   KUBE_JOIN_CMD="$(cat {{ kubernetes_host_dir }}/conf/kubeadm_join_token | grep -oPz 'kubeadm\sjoin(.|\n)*?\n$') --apiserver-advertise-address={{ node_ip }}"
-   bash -c "${KUBE_JOIN_CMD}"
-  when: node_status.rc != 0 or node_status.stdout_lines | length==0
-
-- import_tasks: finalize-master.yml
+- import_tasks: wait-for-master.yml
   when: node_status.rc != 0 or node_status.stdout_lines | length==0
 

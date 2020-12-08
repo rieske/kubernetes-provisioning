@@ -17,7 +17,7 @@
      tags: [etcd]
 
 - hosts: master
-  become: true
+  #become: true
   roles:
     - name: master
       tags: [master]
