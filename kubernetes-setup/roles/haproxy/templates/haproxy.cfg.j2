@@ -1,11 +1,8 @@
 global
-    log 127.0.0.1   local0 info
     maxconn 512000
+    log 127.0.0.1 local0 info
     daemon
     stats socket /var/haproxy/haproxy.sock mode 600 level admin
-    stats timeout 2m
-    external-check
-    pidfile /dev/null
 
 defaults
     log global
@@ -35,3 +32,4 @@ backend b_kube_apiserver
   {% for host in groups['master']|sort %}
     server {{ hostvars[host].inventory_hostname }} {{ hostvars[host].node_ip }}:{{ kube_apiserver_port }} check
   {% endfor %}
+

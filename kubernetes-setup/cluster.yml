@@ -10,18 +10,13 @@
     - name: haproxy
       tags: [base, haproxy]
 
-- hosts: etcd
-  become: true
-  roles:
-   - name: etcd
-     tags: [etcd]
-
 - hosts: master
   roles:
     - name: master
       tags: [master]
 
-- hosts: node
+- hosts: worker
   roles:
-    - name: node
+    - name: worker
       tags: [worker]
+

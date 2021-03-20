@@ -1,4 +1,4 @@
-IMAGE_NAME = "centos/7"
+IMAGE_NAME = "ubuntu/focal64"
 VMS = 4
 
 sshKey="#{Dir.home}/.ssh/id_rsa.pub"

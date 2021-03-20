@@ -1,7 +1,12 @@
 ---
-- name: Initializing Kubernetes cluster
+- name: Initialize Kubernetes cluster
   become: true
-  shell: kubeadm init --config {{ kubernetes_host_dir }}/conf/kubeadm-config.yml --upload-certs
+  shell: |
+    kubeadm init \
+      --pod-network-cidr={{ pod_subnet }} \
+      --control-plane-endpoint={{ control_plane_endpoint }} \
+      --apiserver-advertise-address={{ node_ip }} \
+      --upload-certs
   register: master_init_output
 
 - name: Save master init output
@@ -11,16 +16,18 @@
 
 - name: Extract master join command
   shell: |
-    cat /home/{{ kubernetes_user }}/master_init_output | grep -oPz 'kubeadm\sjoin(.|\n)*?\n$' > /home/{{ kubernetes_user }}/master_join_cmd
+    cat /home/{{ kubernetes_user }}/master_init_output | grep -oPz 'kubeadm\sjoin(.|\n)+$' | head -3 > /home/{{ kubernetes_user }}/master_join_cmd
 
-- name: Setup kubeconfig for {{ kubernetes_user }} user
+- name: Copy kubeconfig to {{ kubeconfig_location }}
   become: true
-  shell: |
-   cp /etc/kubernetes/admin.conf {{ kubeconfig_location }}
-   chown {{ kubernetes_user }}:{{ kubernetes_user }} {{ kubeconfig_location }}
-  when: cluster_health.rc != 0
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ kubeconfig_location }}"
+    remote_src: true
+    owner: "{{ kubernetes_user }}"
+    group: "{{ kubernetes_user }}"
 
 - name: install network add-on
-  command: kubectl apply -f https://docs.projectcalico.org/v3.17/manifests/canal.yaml
+  command: kubectl apply -f https://docs.projectcalico.org/v3.18/manifests/canal.yaml
 
 - import_tasks: wait-for-master.yml

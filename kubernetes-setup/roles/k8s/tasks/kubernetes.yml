@@ -1,0 +1,41 @@
+---
+- name: Add Kubernetes apt signing key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add Kubernetes apt repository
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: kubernetes.list
+
+- name: Install Kubernetes binaries
+  package:
+    state: present
+    name:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: Create kublet configuration directory
+  file:
+    path: /var/lib/kubelet/
+    state: directory
+
+- name: Upload kubelet configuration
+  copy:
+    src: kubelet-config.yaml
+    dest: /var/lib/kubelet/config.yaml
+
+- name: Configure kubelet
+  template:
+    src: kubelet.j2
+    dest: /etc/default/kubelet
+  notify: restart kubelet
+
+- name: Start kubelet service
+  service:
+    name: kubelet
+    state: started
+    enabled: yes

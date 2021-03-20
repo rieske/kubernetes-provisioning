@@ -7,7 +7,8 @@
   with_items:
     - swap
     - none
+  register: swap_config_result
 
 - name: Disable swap
   command: swapoff -a
-  when: ansible_swaptotal_mb > 0
+  when: swap_config_result.changed

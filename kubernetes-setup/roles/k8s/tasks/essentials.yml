@@ -1,0 +1,9 @@
+---
+- name: Install essential packages
+  package:
+    state: present
+    name:
+    - net-tools
+    - telnet
+    - tcpdump
+

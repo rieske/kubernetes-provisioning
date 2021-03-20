@@ -1,8 +1,3 @@
 ---
-kubeadm_join_token_path: "{{ playbook_dir }}/work/kubeadm_join_token"
-
-kubernetes_host_dir: /srv/services/kubernetes
-etcd_host_dir: /srv/services/etcd
 haproxy_host_dir: /srv/services/haproxy
-
 kubeconfig_location: "/home/{{ kubernetes_user }}/.kube/config"

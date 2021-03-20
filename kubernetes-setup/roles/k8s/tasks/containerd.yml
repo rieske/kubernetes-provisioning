@@ -1,0 +1,47 @@
+---
+- name: Configure kernel modules
+  copy:
+    src: containerd.conf
+    dest: /etc/modules-load.d/containerd.conf
+
+- name: Load kernel modules
+  modprobe:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - overlay
+    - br_netfilter
+
+- name: Configure sysctl
+  copy:
+    src: kubernetes-cri.conf
+    dest: /etc/sysctl.d/99-kubernetes-cri.conf
+  notify: reload sysctl
+
+- name: Add Docker apt signing key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker apt repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+    state: present
+
+- name: Install containerd and docker
+  package:
+    state: present
+    name: containerd.io
+
+- name: Upload containerd configuration
+  copy:
+    src: containerd-config.toml
+    dest: /etc/containerd/config.toml
+  notify: restart containerd
+
+- name: Start containerd service
+  service:
+    name: containerd
+    state: started
+    enabled: yes
+

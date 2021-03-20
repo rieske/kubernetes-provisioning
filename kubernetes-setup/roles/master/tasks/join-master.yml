@@ -1,29 +1,31 @@
 ---
 - name: Check node status
-  shell: "kubectl get nodes | grep {{ ansible_fqdn }} | grep -v NotReady"
+  shell: "kubectl get nodes | grep -i {{ ansible_hostname }} | grep -v NotReady"
   register: node_status
   ignore_errors: yes
+  changed_when: false
 
-- name: Get master join command
-  shell: cat /home/{{ kubernetes_user }}/master_join_cmd
-  register: master_join_cmd
-  delegate_to: "{{ groups['master'][0] }}"
+- name: Join as master replica node
+  block:
+  - name: Get master join command
+    shell: cat /home/{{ kubernetes_user }}/master_join_cmd
+    register: master_join_cmd
+    delegate_to: "{{ groups['master'][0] }}"
 
-- name: Join master replica node
-  shell: "{{ master_join_cmd.stdout }} --apiserver-advertise-address={{ node_ip }}"
-  become: true
-  when: node_status.rc != 0 or node_status.stdout_lines | length==0
+  - name: Join master
+    shell: "{{ master_join_cmd.stdout }} --apiserver-advertise-address={{ node_ip }}"
+    become: true
 
-- name: Get kubeadm configuration from first master
-  shell: "cat {{ kubeconfig_location }}"
-  register: config_file_output
-  delegate_to: "{{ groups['master'][0] }}"
+  - name: Get kubeadm configuration from first master
+    shell: "cat {{ kubeconfig_location }}"
+    register: config_file_output
+    delegate_to: "{{ groups['master'][0] }}"
 
-- name: Set kubeadm configuration
-  copy:
-    content: "{{ config_file_output.stdout }}"
-    dest: "{{ kubeconfig_location }}"
+  - name: Set kubeadm configuration
+    copy:
+      content: "{{ config_file_output.stdout }}"
+      dest: "{{ kubeconfig_location }}"
 
-- import_tasks: wait-for-master.yml
+  - import_tasks: wait-for-master.yml
   when: node_status.rc != 0 or node_status.stdout_lines | length==0
 

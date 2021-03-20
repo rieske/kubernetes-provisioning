@@ -1,38 +1,15 @@
 ---
-- name: Create directories
-  become: true
-  file:
-    path: "{{ item }}"
-    state: directory
-  with_items:
-    - /etc/kubernetes
-    - /var/log/kubernetes/audit
-    - "{{ kubernetes_host_dir }}/conf"
-
-- name: Create .kube folder
-  become: true
+- name: Create /home/{{ kubernetes_user }}/.kube directory
   file:
     path: "/home/{{ kubernetes_user }}/.kube"
     state: directory
     owner: "{{ kubernetes_user }}"
 
-- name: Copy audit policy configuration
-  become: true
-  copy:
-    src: audit-policy.yml
-    dest: /etc/sysctl.d/audit-policy.yml
-
-- name: Copy Kubernetes configuration
-  become: true
-  template:
-    src: kubeadm-config.yml.j2
-    dest: "{{ kubernetes_host_dir }}/conf/kubeadm-config.yml"
-  when: inventory_hostname == groups["master"][0]
-
 - name: Check cluster health
   shell: kubectl get cs
   register: cluster_health
   ignore_errors: yes
+  changed_when: false
 
 - import_tasks: initiate-master.yml
   when: inventory_hostname == groups["master"][0] and cluster_health.rc != 0
