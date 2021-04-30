@@ -27,7 +27,13 @@
     owner: "{{ kubernetes_user }}"
     group: "{{ kubernetes_user }}"
 
-- name: install network add-on
-  command: kubectl apply -f https://docs.projectcalico.org/v3.18/manifests/canal.yaml
+- name: Upload network add-on configuration
+  template:
+    src: kube-flannel.yml.j2
+    dest: "/home/{{ kubernetes_user }}/kube-flannel.yml"
+
+- name: Install network add-on
+  command: "kubectl apply -f /home/{{ kubernetes_user }}/kube-flannel.yml"
 
 - import_tasks: wait-for-master.yml
+
