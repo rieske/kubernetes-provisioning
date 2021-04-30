@@ -1,0 +1,8 @@
+---
+- name: Delete service
+  shell: "kubectl delete service/test-service"
+  ignore_errors: true
+
+- name: Delete app
+  shell: "kubectl delete deployment.apps/test-app"
+  ignore_errors: true

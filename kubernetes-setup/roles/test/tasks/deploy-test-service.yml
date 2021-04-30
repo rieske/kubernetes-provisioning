@@ -1,0 +1,23 @@
+---
+- name: Create /home/{{ kubernetes_user }}/test directory
+  file:
+    path: "/home/{{ kubernetes_user }}/test"
+    state: directory
+    owner: "{{ kubernetes_user }}"
+
+- name: Upload test app deployment descriptor
+  template:
+    src: deployment.yml.j2
+    dest: "/home/{{ kubernetes_user }}/test/deployment.yml"
+
+- name: Deploy test app
+  shell: "kubectl create -f /home/{{ kubernetes_user }}/test/deployment.yml"
+
+- name: Upload test service deployment descriptor
+  template:
+    src: service.yml.j2
+    dest: "/home/{{ kubernetes_user }}/test/service.yml"
+
+- name: Deploy test service
+  shell: "kubectl create -f /home/{{ kubernetes_user }}/test/service.yml"
+

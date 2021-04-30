@@ -1,0 +1,7 @@
+---
+app:
+  name: test-app
+  image: nginxdemos/hello:plain-text
+
+service:
+  name: test-service

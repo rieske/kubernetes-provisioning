@@ -1,0 +1,19 @@
+---
+- name: Deploy test application
+  block:
+    - import_tasks: deploy-test-service.yml
+  rescue:
+    - import_tasks: delete-test-service.yml
+    - fail:
+        msg: "Could not deploy test service"
+
+- name: "Ensure the test deployment is healthy"
+  pause:
+    prompt: |
+      Test application was deployed.
+      Run 'kubectl describe service {{ service.name }}' from within the cluster, check the output and:
+        - Ensure individual pod endpoints can be pinged and curled from nodes in the cluster.
+        - Ensure the pods can be accessed via the NodePort IP and are load balanced correctly.
+      Press 'enter' when done and the deployment will be removed
+
+- import_tasks: delete-test-service.yml
