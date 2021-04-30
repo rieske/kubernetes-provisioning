@@ -14,9 +14,9 @@
   package:
     state: present
     name:
-    - kubelet
-    - kubeadm
-    - kubectl
+    - "kubelet={{kubernetes_version}}"
+    - "kubeadm={{kubernetes_version}}"
+    - "kubectl={{kubernetes_version}}"
 
 - name: Create kublet configuration directory
   file:
