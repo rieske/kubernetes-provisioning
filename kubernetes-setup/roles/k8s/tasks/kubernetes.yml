@@ -39,3 +39,8 @@
     name: kubelet
     state: started
     enabled: yes
+
+- name: Install helm
+  snap:
+    name: helm
+    classic: yes

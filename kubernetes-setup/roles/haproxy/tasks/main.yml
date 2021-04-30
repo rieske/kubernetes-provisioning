@@ -1,29 +1,24 @@
 ---
-- name: Create haproxy directories
+- name: Create haproxy config directory
   file:
-    path: "{{ item }}"
+    path: "/etc/haproxy"
     state: directory
-  with_items:
-    - "{{ haproxy_host_dir }}/conf"
-    - "{{ haproxy_host_dir }}/stats"
 
 - name: Upload haproxy configuration
   template:
     src: haproxy.cfg.j2
-    dest: "{{ haproxy_host_dir }}/conf/haproxy.cfg"
+    dest: "/etc/haproxy/haproxy.cfg"
+  notify: reload haproxy
 
-- name: Start haproxy
-  docker_container:
+- name: Install haproxy
+  package:
+    state: present
+    name:
+    - haproxy
+
+- name: Start haproxy service
+  service:
     name: haproxy
     state: started
-    restart_policy: unless-stopped
-    image: "haproxy:{{ haproxy_version }}"
-    command: "haproxy -f /usr/local/etc/haproxy/"
-    network_mode: host
-    read_only: yes
-    restart: no
-    ulimits: "nofile:1048576:1048576"
-    volumes:
-      - "{{ haproxy_host_dir }}/conf:/usr/local/etc/haproxy:ro"
-      - "{{ haproxy_host_dir }}/stats:/var/haproxy:rw"
+    enabled: yes
 

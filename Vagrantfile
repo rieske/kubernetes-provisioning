@@ -15,6 +15,7 @@ Vagrant.configure("2") do |config|
         config.vm.define "node#{i}" do |node|
             node.vm.box = IMAGE_NAME
             node.vm.network "private_network", ip: "192.168.50.#{i + 10}"
+            node.vm.network "forwarded_port", guest: 443, host: 6443, auto_correct: true
             node.vm.hostname = "node#{i}.vagrant.local"
             config.vm.synced_folder '.', '/vagrant', disabled: true
             config.vm.provision "shell" do |s|

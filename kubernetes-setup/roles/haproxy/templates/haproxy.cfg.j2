@@ -1,8 +1,11 @@
 global
     maxconn 512000
     log 127.0.0.1 local0 info
+    stats socket /run/haproxy/haproxy.sock mode 600 level admin expose-fd listeners
+    stats timeout 30s
+    user haproxy
+    group haproxy
     daemon
-    stats socket /var/haproxy/haproxy.sock mode 600 level admin
 
 defaults
     log global

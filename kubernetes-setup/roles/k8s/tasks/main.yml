@@ -1,7 +1,6 @@
 ---
 - import_tasks: essentials.yml
 - import_tasks: containerd.yml
-- import_tasks: docker.yml
 - import_tasks: disable-swap.yml
 - import_tasks: kubernetes.yml
 
