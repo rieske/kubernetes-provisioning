@@ -1,7 +1,7 @@
 IMAGE_NAME = "ubuntu/focal64"
 VMS = 4
 
-sshKey="#{Dir.home}/.ssh/id_rsa.pub"
+sshKey="#{Dir.home}/.ssh/id_ed25519.pub"
 
 Vagrant.configure("2") do |config|
     config.ssh.insert_key = false
