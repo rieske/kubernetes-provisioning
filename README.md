@@ -1,3 +1,7 @@
+## Prerequisites
+
+- `vagrant`
+
 ## Spawning the VMs
 
 ```
