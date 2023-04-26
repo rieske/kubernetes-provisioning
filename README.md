@@ -1,6 +1,8 @@
 ## Prerequisites
 
 - `vagrant`
+- `libvirt`
+- `ansible`
 
 ## Spawning the VMs
 

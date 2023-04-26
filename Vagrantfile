@@ -1,4 +1,4 @@
-IMAGE_NAME = "ubuntu/focal64"
+IMAGE_NAME = "generic/ubuntu2004"
 VMS = 4
 
 sshKey="#{Dir.home}/.ssh/id_ed25519.pub"
@@ -6,7 +6,7 @@ sshKey="#{Dir.home}/.ssh/id_ed25519.pub"
 Vagrant.configure("2") do |config|
     config.ssh.insert_key = false
 
-    config.vm.provider "virtualbox" do |v|
+    config.vm.provider "libvirt" do |v|
         v.memory = 2048
         v.cpus = 2
     end
