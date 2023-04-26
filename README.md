@@ -21,3 +21,11 @@ vagrant destroy -f
 ```
 ./vagrant-provision.sh
 ```
+
+## Troubleshooting
+
+### Flannel
+
+Show pod status: `kubectl get pod --namespace kube-flannel -l app=flannel`
+Show pod logs: `kubectl logs --namespace kube-flannel <POD_ID> -c kube-flannel`
+
